@@ -396,7 +396,7 @@
     "Complete": "Complete",
     "/ mese": "/ month",
     "SITI WEB, SENZA COMPLICAZIONI": "WEBSITES, WITHOUT THE DRAMA",
-    "DIAMO FORMA ALLE IDEE": "LET'S MAKE IT REAL"
+    "DIAMO FORMA ALLE IDEE": "LET'S MAKE IT REAL",
     "E-mail:": "Email:",
     "Piano:": "Plan:",
     "Torna alla homepage ↗": "Back to homepage ↗",
@@ -405,7 +405,7 @@
     "Blog / magazine": "Blog / magazine",
     "Landing page": "Landing page",
     "Startup / SaaS / Web3": "Startups / SaaS / Web3",
-    "E-commerce": "E-commerce"
+    "E-commerce": "E-commerce",
     "mese": "month",
     "Controlla il tuo metodo di pagamento o riprova tra poco.": "Check your payment method or try again shortly.",
     "Verifica non disponibile.": "Verification is currently unavailable.",
@@ -413,7 +413,7 @@
     "Richiesta inviata correttamente. Ti ricontatteremo.": "Enquiry sent successfully. We'll be in touch.",
     "Il servizio non è ancora configurato.": "The service is not configured yet.",
     "Il pagamento non risulta ancora completato. Controlla lo stato su Stripe o riprova tra qualche istante.": "Payment is not yet confirmed. Check your Stripe status or try again in a moment.",
-    "Siti web che hanno senso.": "Websites that make sense."
+    "Siti web che hanno senso.": "Websites that make sense.",
     "Siti web senza drammi": "WEBSITES, WITHOUT THE DRAMA",
     "Siti web con un senso.": "Websites that make sense.",
     "Design prima di tutto. Nessun dramma.": "DESIGN FIRST. NO DRAMA.",
@@ -427,7 +427,7 @@
     "Chiudi finestra": "Close dialog",
     "Sito professionale fino a 1 pagina": "Professional website up to 1 page",
     "Sito professionale fino a 8 pagine": "Professional website up to 8 pages",
-    "Sito professionale fino a 20 pagine": "Professional website up to 20 pages"
+    "Sito professionale fino a 20 pagine": "Professional website up to 20 pages",
     "Trova il tuo piano ↗": "Find your plan ↗",
     "Ho letto le": "I've read the ",
     "Inserisci un nome valido (almeno 2 caratteri).": "Enter a valid name (at least 2 characters).",
@@ -464,7 +464,7 @@
     "[VERSIONE E DATA]": "[VERSION AND DATE]",
     "Qui non c'è": "There's no",
     "nessun sito.": "website here.",
-    "Newsletter": "Newsletter"
+    "Newsletter": "Newsletter",
   };
 
   const EN_IT = Object.fromEntries(Object.entries(IT_EN).map(([italian, english]) => [english, italian]));
