@@ -8,3 +8,13 @@
 .success-page{min-height:calc(100vh - 180px);display:grid;place-items:center;padding:60px 20px}.success-card{width:min(100%,650px);padding:46px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}.success-icon{width:47px;height:47px;border-radius:50%;display:grid;place-items:center;background:#e9ebdf;font:19px var(--mono);margin-bottom:29px}.success-icon-good{background:var(--lime);color:#253115}.success-card h1{font:600 clamp(39px,6vw,58px)/1.02 var(--display);letter-spacing:-.075em;margin:18px 0}.success-card>p{font-size:13px;line-height:1.8;color:#72746b;max-width:490px}.success-details{margin:25px 0;border-top:1px solid var(--line)}.success-details>div{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid var(--line);font-size:11px}.success-details>div>span{color:#77796e}.success-details>div>strong{text-align:right;overflow-wrap:anywhere}.success-footnote{padding-top:19px;border-top:1px solid var(--line);font-size:10px!important;color:#888a80!important}.success-card .button{margin-top:10px}
 
 .hp-field{position:absolute!important;left:-10000px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important}.checkout-terms-row[hidden]{display:none!important}
+
+/* Fix: the browser's [hidden] default was overridden by display:flex above. */
+.mobile-nav[hidden]{display:none!important}
+.language-switch{display:inline-flex;align-items:center;justify-content:center;gap:3px;flex:0 0 auto;border:1px solid var(--line);padding:3px;border-radius:3px;background:rgba(255,255,255,.45)}
+.language-switch button{border:0;background:transparent;cursor:pointer;padding:6px 7px;font:10px var(--mono);color:#76786d;line-height:1;transition:background .18s,color .18s}
+.language-switch button:hover{color:var(--ink)}
+.language-switch button.is-active{background:var(--lime);color:var(--ink);font-weight:700}
+.language-switch button:focus-visible{outline-offset:2px}
+@media(max-width:1100px){.nav-wrap{gap:14px}.language-switch button{padding:6px 5px}}
+@media(max-width:800px){.nav-wrap{gap:10px}.language-switch{margin-left:auto}.language-switch button{padding:7px 6px}}

@@ -6,9 +6,9 @@
     business: { name: "Business", price: 119 },
     pro: { name: "Pro", price: 249 }
   };
-  const money = new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
-  const number = new Intl.NumberFormat("it-IT", { maximumFractionDigits: 0 });
   const byId = id => document.getElementById(id);
+  const tr = value => window.CONCEPT_I18N?.t(value) || value;
+  const money = value => new Intl.NumberFormat(window.CONCEPT_I18N?.getLanguage() === "en" ? "en-IE" : "it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value);
 
   // Mobile navigation: close after choosing a section and keep aria-expanded in sync.
   const menuButton = document.querySelector(".menu-toggle");
@@ -48,19 +48,26 @@
     const newTotal = monthly * months;
     const difference = oldTotal - newTotal;
     const max = Math.max(oldTotal, newTotal, 1);
-    savingsValue.textContent = `${difference < 0 ? "− " : ""}${money.format(Math.abs(difference))}`;
+    savingsValue.textContent = `${difference < 0 ? "− " : ""}${money(Math.abs(difference))}`;
     savingsValue.classList.toggle("negative", difference < 0);
-    traditionalTotalEl.textContent = money.format(oldTotal);
-    conceptTotalEl.textContent = money.format(newTotal);
+    traditionalTotalEl.textContent = money(oldTotal);
+    conceptTotalEl.textContent = money(newTotal);
     traditionalBar.style.width = `${Math.max(2, (oldTotal / max) * 100)}%`;
     conceptBar.style.width = `${Math.max(2, (newTotal / max) * 100)}%`;
     const planName = Object.values(plans).find(plan => Number(plan.price) === monthly)?.name || "CONCEPT";
+    const english = window.CONCEPT_I18N?.getLanguage() === "en";
     if (difference > 0) {
-      savingsCaption.textContent = `Con CONCEPT ${planName} la differenza stimata è ${money.format(difference)} in ${months} mesi, in base ai valori inseriti.`;
+      savingsCaption.textContent = english
+        ? `With CONCEPT ${planName}, your estimated difference is ${money(difference)} over ${months} months, based on your inputs.`
+        : `Con CONCEPT ${planName} la differenza stimata è ${money(difference)} in ${months} mesi, in base ai valori inseriti.`;
     } else if (difference < 0) {
-      savingsCaption.textContent = `Con questi valori, CONCEPT costa ${money.format(Math.abs(difference))} in più in ${months} mesi. Valuta anche differenze di servizio e perimetro.`;
+      savingsCaption.textContent = english
+        ? `With these figures, CONCEPT costs ${money(Math.abs(difference))} more over ${months} months. Compare the service scope too.`
+        : `Con questi valori, CONCEPT costa ${money(Math.abs(difference))} in più in ${months} mesi. Valuta anche differenze di servizio e perimetro.`;
     } else {
-      savingsCaption.textContent = `Con questi valori, il costo complessivo è uguale in ${months} mesi. Confronta anche il perimetro dei servizi.`;
+      savingsCaption.textContent = english
+        ? `With these figures, the total cost is the same over ${months} months. Compare the service scope too.`
+        : `Con questi valori, il costo complessivo è uguale in ${months} mesi. Confronta anche il perimetro dei servizi.`;
     }
   }
   [traditionalCost, traditionalMaintenance, calculatorPlan, calculatorPeriod].filter(Boolean).forEach(el => {
@@ -95,7 +102,7 @@
       formMessage.textContent = "";
       formMessage.classList.remove("error");
     }
-    if (submitLabel) submitLabel.textContent = action === "inquiry" ? "Invia la richiesta" : "Continua al riepilogo";
+    if (submitLabel) submitLabel.textContent = action === "inquiry" ? tr("Invia la richiesta") : tr("Continua al riepilogo");
     const termsRow = byId("checkout-terms-row");
     if (termsRow) termsRow.hidden = action !== "checkout";
     const termsInput = termsRow?.querySelector("input");
@@ -156,36 +163,36 @@
     };
   }
   function validatePayload(payload) {
-    if (payload.name.length < 2 || payload.name.length > 100) return "Inserisci un nome valido (almeno 2 caratteri).";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email) || payload.email.length > 254) return "Inserisci un indirizzo e-mail valido.";
-    if (!Object.hasOwn(plans, payload.plan) && payload.plan !== "custom") return "Seleziona un piano valido.";
-    if (!payload.siteType) return "Scegli la tipologia di sito.";
-    if (!payload.privacyAcknowledged) return "Conferma di aver letto l'informativa privacy per proseguire.";
-    if (requestedAction === "checkout" && !payload.termsAcknowledged) return "Per procedere al checkout devi confermare di aver letto le condizioni del servizio.";
-    if (payload.details.length > 1800) return "La descrizione è troppo lunga.";
+    if (payload.name.length < 2 || payload.name.length > 100) return tr("Inserisci un nome valido (almeno 2 caratteri).");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email) || payload.email.length > 254) return tr("Inserisci un indirizzo e-mail valido.");
+    if (!Object.hasOwn(plans, payload.plan) && payload.plan !== "custom") return tr("Seleziona un piano valido.");
+    if (!payload.siteType) return tr("Scegli la tipologia di sito.");
+    if (!payload.privacyAcknowledged) return tr("Conferma di aver letto l'informativa privacy per proseguire.");
+    if (requestedAction === "checkout" && !payload.termsAcknowledged) return tr("Per procedere al checkout devi confermare di aver letto le condizioni del servizio.");
+    if (payload.details.length > 1800) return tr("La descrizione è troppo lunga.");
     return "";
   }
   function downloadProjectBrief(payload, reason) {
-    const plan = payload.plan === "custom" ? "Da definire" : `${plans[payload.plan]?.name || payload.plan} — ${money.format(plans[payload.plan]?.price || 0)}/mese`;
+    const plan = payload.plan === "custom" ? tr("Da definire") : `${plans[payload.plan]?.name || payload.plan} — ${money(plans[payload.plan]?.price || 0)}/${tr("mese")}`;
     const content = [
-      "CONCEPT — RIEPILOGO RICHIESTA PROGETTO",
+      tr("CONCEPT — RIEPILOGO RICHIESTA PROGETTO"),
       "======================================",
-      `Nome: ${payload.name}`,
-      `E-mail: ${payload.email}`,
-      `Piano: ${plan}`,
-      `Tipologia: ${payload.siteType}`,
-      `Descrizione: ${payload.details || "Non specificata"}`,
-      `Data: ${new Date().toLocaleString("it-IT")}`,
+      `${tr("Nome:")} ${payload.name}`,
+      `${tr("E-mail:")} ${payload.email}`,
+      `${tr("Piano:")} ${plan}`,
+      `${tr("Tipologia:")} ${payload.siteType}`,
+      `${tr("Descrizione:")} ${payload.details || tr("Non specificata")}`,
+      `${tr("Data:")} ${new Date().toLocaleString(window.CONCEPT_I18N?.getLanguage() === "en" ? "en-GB" : "it-IT")}`,
       "",
-      "ATTENZIONE: questo riepilogo è stato generato localmente. Non è stato inviato al venditore.",
-      `Motivo: ${reason}`,
-      "Prima di inviare questo documento, verifica l'indirizzo di contatto ufficiale del servizio."
+      tr("ATTENZIONE: questo riepilogo è stato generato localmente. Non è stato inviato al venditore."),
+      `${tr("Motivo:")} ${tr(reason)}`,
+      tr("Prima di inviare questo documento, verifica l'indirizzo di contatto ufficiale del servizio.")
     ].join("\n");
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = "concept-richiesta-progetto.txt";
+    anchor.download = tr("concept-richiesta-progetto.txt");
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -200,7 +207,7 @@
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const error = new Error(body.error || "Servizio momentaneamente non disponibile.");
+      const error = new Error(tr(body.error || "Servizio momentaneamente non disponibile."));
       error.status = response.status;
       throw error;
     }
@@ -217,34 +224,34 @@
     }
     const submit = projectForm.querySelector("button[type=submit]");
     if (submit) submit.disabled = true;
-    if (submitLabel) submitLabel.textContent = requestedAction === "inquiry" ? "Invio in corso…" : "Preparazione…";
-    showFormMessage("Un momento: stiamo preparando la richiesta…");
+    if (submitLabel) submitLabel.textContent = requestedAction === "inquiry" ? tr("Invio in corso…") : tr("Preparazione…");
+    showFormMessage(tr("Un momento: stiamo preparando la richiesta…"));
     try {
       const endpoint = requestedAction === "inquiry" ? config.inquiryEndpoint : config.checkoutEndpoint;
-      if (!endpoint || typeof endpoint !== "string") throw new Error("Il servizio non è ancora configurato.");
+      if (!endpoint || typeof endpoint !== "string") throw new Error(tr("Il servizio non è ancora configurato."));
       const result = await postJson(endpoint, payload);
       if (requestedAction === "checkout" && result.url && /^https:\/\//i.test(result.url)) {
         window.location.assign(result.url);
         return;
       }
       if (result.success) {
-        showFormMessage(result.message || "Richiesta inviata correttamente. Ti ricontatteremo.");
+        showFormMessage(tr(result.message || "Richiesta inviata. Grazie: ti ricontatteremo usando l'e-mail indicata."));
         projectForm.reset();
         if (formPlan) formPlan.value = "business";
-        if (submitLabel) submitLabel.textContent = "Richiesta inviata ✓";
+        if (submitLabel) submitLabel.textContent = tr("Richiesta inviata ✓");
         return;
       }
-      throw new Error("La risposta del servizio non è valida.");
+      throw new Error(tr("La risposta del servizio non è valida."));
     } catch (error) {
       const configMissing = error.status === 503 || /non è ancora configurato|non configurato|momentaneamente non disponibile/i.test(error.message);
       const message = configMissing
-        ? "Il sistema di invio/pagamento non è ancora collegato. Per non perdere i dettagli, puoi scaricare il brief: nessun dato è stato inviato e nessun pagamento è partito."
-        : `Non siamo riusciti a completare l'operazione. Nessun pagamento è stato avviato. ${error.message}`;
+        ? tr("Il sistema di invio/pagamento non è ancora collegato. Per non perdere i dettagli, puoi scaricare il brief: nessun dato è stato inviato e nessun pagamento è partito.")
+        : `${tr("Non siamo riusciti a completare l'operazione. Nessun pagamento è stato avviato.")} ${tr(error.message)}`;
       showFormMessage(message, "error");
       if (configMissing || !navigator.onLine) downloadProjectBrief(payload, error.message);
     } finally {
       if (submit) submit.disabled = false;
-      if (submitLabel) submitLabel.textContent = requestedAction === "inquiry" ? "Invia la richiesta" : "Continua al riepilogo";
+      if (submitLabel) submitLabel.textContent = requestedAction === "inquiry" ? tr("Invia la richiesta") : tr("Continua al riepilogo");
     }
   });
 

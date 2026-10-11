@@ -1,5 +1,6 @@
 (() => {
   const byId = id => document.getElementById(id);
+  const tr = value => window.CONCEPT_I18N?.t(value) || value;
   const moneySafeText = value => String(value || "").replace(/[<>]/g, "");
   if (byId("success-year")) byId("success-year").textContent = String(new Date().getFullYear());
   const params = new URLSearchParams(window.location.search);
@@ -12,8 +13,8 @@
   async function verify() {
     if (!idOkay) {
       icon.textContent = "!";
-      title.textContent = "Non troviamo questo ordine.";
-      copy.textContent = "Manca un identificativo di checkout valido. Non è stata fatta alcuna nuova transazione da questa pagina.";
+      title.textContent = tr("Non troviamo questo ordine.");
+      copy.textContent = tr("Manca un identificativo di checkout valido. Non è stata fatta alcuna nuova transazione da questa pagina.");
       return;
     }
     try {
@@ -22,16 +23,16 @@
       if (!response.ok) throw new Error(result.error || "Verifica non disponibile.");
       if (!result.paid) {
         icon.textContent = "…";
-        title.textContent = "Pagamento non ancora confermato.";
-        copy.textContent = result.message || "Controlla il tuo metodo di pagamento o riprova tra poco.";
+        title.textContent = tr("Pagamento non ancora confermato.");
+        copy.textContent = result.message || tr("Controlla il tuo metodo di pagamento o riprova tra poco.");
         return;
       }
       icon.textContent = "✓";
       icon.classList.add("success-icon-good");
-      title.textContent = "Perfetto. Si comincia.";
-      copy.textContent = "Il pagamento risulta confermato. Conserva la ricevuta inviata dal processore di pagamento.";
+      title.textContent = tr("Perfetto. Si comincia.");
+      copy.textContent = tr("Il pagamento risulta confermato. Conserva la ricevuta inviata dal processore di pagamento.");
       details.hidden = false;
-      const rows = [{ label: "Piano", value: result.plan }, { label: "E-mail", value: result.email }, { label: "Stato abbonamento", value: result.subscriptionStatus }];
+      const rows = [{ label: tr("Piano"), value: result.plan }, { label: tr("E-mail"), value: result.email }, { label: tr("Stato abbonamento"), value: result.subscriptionStatus }];
       rows.forEach(row => {
         if (!row.value) return;
         const line = document.createElement("div");
@@ -41,8 +42,8 @@
       });
     } catch (error) {
       icon.textContent = "!";
-      title.textContent = "Non riusciamo a verificare ora.";
-      copy.textContent = `${error.message || "Servizio momentaneamente non disponibile."} Non ripetere il pagamento prima di aver controllato la conferma con Stripe.`;
+      title.textContent = tr("Non riusciamo a verificare ora.");
+      copy.textContent = `${tr(error.message || "Servizio momentaneamente non disponibile.")} ${tr("Non ripetere il pagamento prima di aver controllato la conferma con Stripe.")}`;
     }
   }
   verify();

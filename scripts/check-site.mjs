@@ -4,7 +4,7 @@ import process from 'node:process';
 
 const root = process.cwd();
 const required = [
-  'index.html', 'styles.css', 'app.js', 'site-config.js', 'success.html', 'success.js',
+  'index.html', 'styles.css', 'app.js', 'i18n.js', 'site-config.js', 'success.html', 'success.js',
   'privacy.html', 'terms.html', '404.html', 'site.webmanifest', 'robots.txt', 'vercel.json',
   'api/create-checkout-session.js', 'api/contact.js', 'api/checkout-session.js', 'assets/favicon.svg', '.env.example', '.github/workflows/ci.yml'
 ];
@@ -20,6 +20,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 const config = fs.readFileSync(path.join(root, 'site-config.js'), 'utf8');
+const i18n = fs.readFileSync(path.join(root, 'i18n.js'), 'utf8');
 const checkoutApi = fs.readFileSync(path.join(root, 'api/create-checkout-session.js'), 'utf8');
 const ids = new Set([...html.matchAll(/\bid=["']([^"']+)["']/g)].map(match => match[1]));
 for (const match of html.matchAll(/href=["']#([^"']+)["']/g)) {
@@ -46,6 +47,17 @@ if (!css.includes('@media (max-width:520px)')) failures.push('Stili mobile stret
 if (!css.includes('prefers-reduced-motion')) failures.push('Manca il supporto a prefers-reduced-motion.');
 if (!html.includes('aria-live="polite"')) failures.push('Feedback accessibile del form mancante.');
 if (!html.includes('calcolatore')) failures.push('Contenuto relativo al calcolatore non trovato.');
+if (!css.includes('.mobile-nav[hidden]{display:none!important}')) failures.push('La navigazione mobile deve rispettare l\'attributo hidden per non coprire la homepage.');
+if (!i18n.includes('data-set-language') || !i18n.includes('concept-language') || !i18n.includes('document.documentElement.lang = next')) failures.push('Selettore IT/EN o persistenza della lingua mancanti.');
+for (const page of ['privacy.html', 'terms.html', 'success.html', '404.html']) {
+  if (!fs.readFileSync(path.join(root, page), 'utf8').includes('src="/i18n.js"')) failures.push(`Selettore lingua non caricato su ${page}.`);
+}
+if (!html.includes('src="/i18n.js"')) failures.push('Il selettore IT/EN non è caricato sulla homepage.');
+if (!i18n.includes('Find your plan') || !i18n.includes('CONCEPT Business') || !i18n.includes('Data controller')) failures.push('Traduzioni inglesi fondamentali mancanti.');
+for (const value of ['Landing page', 'Sito aziendale', 'Blog / magazine', 'Portfolio / personal brand', 'Startup / SaaS / Web3', 'E-commerce', 'Altro / da definire']) {
+  if (!html.includes(`<option value="${value}">`)) failures.push(`Il valore API del tipo sito deve restare stabile anche traducendo la label: ${value}`);
+}
+
 try {
   JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
   JSON.parse(fs.readFileSync(path.join(root, 'site.webmanifest'), 'utf8'));

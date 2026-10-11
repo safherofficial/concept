@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,6 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
   <script src="/site-config.js" defer></script>
+  <script src="/i18n.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -71,7 +72,7 @@
           <div class="browser-card">
             <div class="browser-top"><div class="browser-dots"><i></i><i></i><i></i></div><div class="browser-url"><span class="lock-icon">⌑</span> nordstudio.it</div><div class="browser-menu-icon">···</div></div>
             <div class="demo-site">
-              <div class="demo-nav"><span class="demo-brand">NORD<span>®</span></span><span>STUDIO&nbsp;&nbsp;&nbsp; APPROCCIO&nbsp;&nbsp;&nbsp; CONTATTI</span><b>↗</b></div>
+              <div class="demo-nav"><span class="demo-brand">NORD<span>®</span></span><span>STUDIO&nbsp;&nbsp;&nbsp; APPROACH&nbsp;&nbsp;&nbsp; CONTACT</span><b>↗</b></div>
               <div class="demo-kicker"><span></span> BRAND & DIGITAL STUDIO</div>
               <div class="demo-title">Make<br>space for<br><em>better.</em></div>
               <div class="demo-bottom"><span>Strategia, identità<br>e visioni digitali.</span><span class="demo-round">↘</span></div>
@@ -196,7 +197,7 @@
         <form id="project-form" novalidate>
           <div class="hp-field" aria-hidden="true"><label>Lascia vuoto questo campo<input name="website" tabindex="-1" autocomplete="off"></label></div>
           <div class="form-row"><label>Come ti chiami? *<input name="name" autocomplete="name" required maxlength="100" placeholder="Nome e cognome"></label><label>La tua e-mail *<input name="email" autocomplete="email" type="email" required maxlength="254" placeholder="nome@azienda.it"></label></div>
-          <div class="form-row"><label>Piano di partenza *<select name="plan" id="form-plan" required><option value="starter">Starter — 49 €/mese</option><option value="business" selected>Business — 119 €/mese</option><option value="pro">Pro — 249 €/mese</option><option value="custom">Non so ancora / progetto su misura</option></select></label><label>Che sito hai in mente? *<select name="siteType" required><option value="">Scegli una tipologia</option><option>Landing page</option><option>Sito aziendale</option><option>Blog / magazine</option><option>Portfolio / personal brand</option><option>Startup / SaaS / Web3</option><option>E-commerce</option><option>Altro / da definire</option></select></label></div>
+          <div class="form-row"><label>Piano di partenza *<select name="plan" id="form-plan" required><option value="starter">Starter — 49 €/mese</option><option value="business" selected>Business — 119 €/mese</option><option value="pro">Pro — 249 €/mese</option><option value="custom">Non so ancora / progetto su misura</option></select></label><label>Che sito hai in mente? *<select name="siteType" required><option value="">Scegli una tipologia</option><option value="Landing page">Landing page</option><option value="Sito aziendale">Sito aziendale</option><option value="Blog / magazine">Blog / magazine</option><option value="Portfolio / personal brand">Portfolio / personal brand</option><option value="Startup / SaaS / Web3">Startup / SaaS / Web3</option><option value="E-commerce">E-commerce</option><option value="Altro / da definire">Altro / da definire</option></select></label></div>
           <label>Raccontaci l'idea<textarea name="details" rows="3" maxlength="1800" placeholder="Obiettivo, stile, pagine o funzioni importanti…"></textarea></label>
           <label class="consent-row"><input type="checkbox" name="privacyAcknowledged" required><span>Ho letto l'<a href="/privacy.html" target="_blank" rel="noopener">informativa privacy</a> e chiedo di essere ricontattato per questa richiesta. *</span></label>
           <label class="consent-row checkout-terms-row" id="checkout-terms-row"><input type="checkbox" name="termsAcknowledged"><span>Ho letto le <a href="/terms.html" target="_blank" rel="noopener">condizioni del servizio</a> e confermo che il piano selezionato prevede un abbonamento ricorrente mensile. *</span></label>
