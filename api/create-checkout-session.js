@@ -59,10 +59,19 @@ module.exports = async function createCheckoutSession(req, res) {
   const sandboxTestEnabled = isTestKey && process.env.STRIPE_TEST_CHECKOUT_ENABLED === "true";
   const taxReady = process.env.STRIPE_AUTOMATIC_TAX === "true";
   const legalReady = process.env.LEGAL_TERMS_READY === "true" && Boolean(process.env.TERMS_VERSION);
+  // Return safe, actionable messages without exposing secrets or bypassing live-mode gates.
+  if (!siteUrl || !/^https:\/\//i.test(siteUrl)) {
+    return send(res, 503, { error: "Checkout non configurato: controlla la variabile SITE_URL nell'ambiente Preview di Vercel." });
+  }
+  if (!stripeKey) {
+    return send(res, 503, { error: "Checkout non configurato: aggiungi STRIPE_SECRET_KEY nelle variabili Preview di Vercel." });
+  }
   // Only the explicit test-mode flag can bypass legal/tax readiness, and only with a Stripe test key.
-  if (!siteUrl || !/^https:\/\//i.test(siteUrl) || !stripeKey ||
-      (!(taxReady && legalReady) && !sandboxTestEnabled)) {
-    return send(res, 503, { error: "Checkout non attivo: configura Stripe Sandbox per i test oppure completa dominio, imposte e revisione legale." });
+  if (!(taxReady && legalReady) && !sandboxTestEnabled) {
+    if (isTestKey) {
+      return send(res, 503, { error: "Checkout Sandbox disattivato: imposta STRIPE_TEST_CHECKOUT_ENABLED=true nell'ambiente Preview di Vercel." });
+    }
+    return send(res, 503, { error: "Checkout reale disattivato: prima di abilitarlo servono revisione legale e configurazione fiscale complete." });
   }
   if (!sameOrigin(req, siteUrl)) return send(res, 403, { error: "Origine della richiesta non valida." });
 
