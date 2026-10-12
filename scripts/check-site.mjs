@@ -41,11 +41,9 @@ for (const expected of ['traditional-cost', 'traditional-maintenance', 'calculat
   if (!ids.has(expected)) failures.push(`Controllo calcolatore mancante: ${expected}`);
 }
 for (const asset of ['/styles.css', '/app.js', '/site-config.js', '/assets/favicon.svg', '/privacy.html', '/terms.html']) {
-  const escaped = asset.replace(/[.*+?^${}()|[\]\\]/g, '\\for (const asset of ['/styles.css', '/app.js', '/site-config.js', '/assets/favicon.svg', '/privacy.html', '/terms.html']) {
-  if (!html.includes(`href="${asset}"`) && !html.includes(`src="${asset}"`)) failures.push(`Riferimento asset atteso non trovato: ${asset}`);
-}');
-  const reference = new RegExp(`(?:href|src)="${escaped}(?:\\?[^"]*)?"`);
-  if (!reference.test(html)) failures.push(`Riferimento asset atteso non trovato: ${asset}`);
+  const exactReference = html.includes(`href="${asset}"`) || html.includes(`src="${asset}"`);
+  const versionedReference = html.includes(`href="${asset}?v=`) || html.includes(`src="${asset}?v=`);
+  if (!exactReference && !versionedReference) failures.push(`Riferimento asset atteso non trovato: ${asset}`);
 }
 if (!html.includes('/app.js?v=20261012-3') || !html.includes('/i18n.js?v=20261012-3') || !html.includes('/site-config.js?v=20261012-3')) failures.push('Gli script principali devono usare la versione cache-busted.');
 if (!css.includes('@media (max-width:520px)')) failures.push('Stili mobile stretti mancanti.');
