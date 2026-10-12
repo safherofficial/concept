@@ -42,11 +42,15 @@ module.exports = async function createCheckoutSession(req, res) {
     return send(res, 405, { error: "Metodo non consentito." });
   }
   const siteUrl = String(process.env.SITE_URL || "").replace(/\/$/, "");
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const stripeKey = process.env.STRIPE_SECRET_KEY || "";
+  const isTestKey = /^(sk|rk)_test_/.test(stripeKey);
+  const sandboxTestEnabled = isTestKey && process.env.STRIPE_TEST_CHECKOUT_ENABLED === "true";
+  const taxReady = process.env.STRIPE_AUTOMATIC_TAX === "true";
+  const legalReady = process.env.LEGAL_TERMS_READY === "true" && Boolean(process.env.TERMS_VERSION);
+  // Only the explicit test-mode flag can bypass legal/tax readiness, and only with a Stripe test key.
   if (!siteUrl || !/^https:\/\//i.test(siteUrl) || !stripeKey ||
-      process.env.STRIPE_AUTOMATIC_TAX !== "true" ||
-      process.env.LEGAL_TERMS_READY !== "true" || !process.env.TERMS_VERSION) {
-    return send(res, 503, { error: "Checkout non attivo: completare dominio, Stripe, imposte e revisione legale." });
+      (!(taxReady && legalReady) && !sandboxTestEnabled)) {
+    return send(res, 503, { error: "Checkout non attivo: configura Stripe Sandbox per i test oppure completa dominio, imposte e revisione legale." });
   }
   if (!sameOrigin(req, siteUrl)) return send(res, 403, { error: "Origine della richiesta non valida." });
 
@@ -97,7 +101,7 @@ module.exports = async function createCheckoutSession(req, res) {
     form.set("customer_email", email);
     form.set("billing_address_collection", "required");
     form.set("tax_id_collection[enabled]", "true");
-    form.set("automatic_tax[enabled]", "true");
+    form.set("automatic_tax[enabled]", taxReady ? "true" : "false");
     form.set("line_items[0][quantity]", "1");
     form.set("line_items[0][price]", priceId);
     form.set("success_url", `${siteUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`);
@@ -105,7 +109,7 @@ module.exports = async function createCheckoutSession(req, res) {
     form.set("allow_promotion_codes", "false");
     form.set("metadata[plan]", planId);
     form.set("metadata[terms_acknowledged]", "yes");
-    form.set("metadata[terms_version]", clean(process.env.TERMS_VERSION, 60));
+    form.set("metadata[terms_version]", legalReady ? clean(process.env.TERMS_VERSION, 60) : "sandbox-test");
     form.set("metadata[customer_name]", name);
     form.set("metadata[site_type]", siteType);
     form.set("metadata[project_brief]", details.slice(0, 450));
