@@ -41,8 +41,11 @@ for (const expected of ['traditional-cost', 'traditional-maintenance', 'calculat
   if (!ids.has(expected)) failures.push(`Controllo calcolatore mancante: ${expected}`);
 }
 for (const asset of ['/styles.css', '/app.js', '/site-config.js', '/assets/favicon.svg', '/privacy.html', '/terms.html']) {
-  if (!html.includes(`href="${asset}"`) && !html.includes(`src="${asset}"`)) failures.push(`Riferimento asset atteso non trovato: ${asset}`);
+  const exactReference = html.includes(`href="${asset}"`) || html.includes(`src="${asset}"`);
+  const versionedReference = html.includes(`href="${asset}?v=`) || html.includes(`src="${asset}?v=`);
+  if (!exactReference && !versionedReference) failures.push(`Riferimento asset atteso non trovato: ${asset}`);
 }
+if (!html.includes('/app.js?v=20261012-3') || !html.includes('/i18n.js?v=20261012-3') || !html.includes('/site-config.js?v=20261012-3')) failures.push('Gli script principali devono usare la versione cache-busted.');
 if (!css.includes('@media (max-width:520px)')) failures.push('Stili mobile stretti mancanti.');
 if (!css.includes('prefers-reduced-motion')) failures.push('Manca il supporto a prefers-reduced-motion.');
 if (!html.includes('aria-live="polite"')) failures.push('Feedback accessibile del form mancante.');
@@ -64,9 +67,9 @@ if (!css.includes('.mobile-nav{position:absolute;top:100%') || !css.includes('.m
 if (!css.includes('.mobile-nav[hidden]{display:none!important}')) failures.push('La navigazione mobile deve rispettare l\'attributo hidden per non coprire la homepage.');
 if (!i18n.includes('data-set-language') || !i18n.includes('concept-language') || !i18n.includes('document.documentElement.lang = next')) failures.push('Selettore IT/EN o persistenza della lingua mancanti.');
 for (const page of ['privacy.html', 'terms.html', 'success.html', '404.html']) {
-  if (!fs.readFileSync(path.join(root, page), 'utf8').includes('src="/i18n.js"')) failures.push(`Selettore lingua non caricato su ${page}.`);
+  if (!/src="\/i18n\.js(?:\?[^"]*)?"/.test(fs.readFileSync(path.join(root, page), 'utf8'))) failures.push(`Selettore lingua non caricato su ${page}.`);
 }
-if (!html.includes('src="/i18n.js"')) failures.push('Il selettore IT/EN non è caricato sulla homepage.');
+if (!/src="\/i18n\.js(?:\?[^"]*)?"/.test(html)) failures.push('Il selettore IT/EN non è caricato sulla homepage.');
 if (!i18n.includes('Find your plan') || !i18n.includes('CONCEPT Business') || !i18n.includes('Data controller')) failures.push('Traduzioni inglesi fondamentali mancanti.');
 for (const value of ['Landing page', 'Sito aziendale', 'Blog / magazine', 'Portfolio / personal brand', 'Startup / SaaS / Web3', 'E-commerce', 'Altro / da definire']) {
   if (!html.includes(`<option value="${value}">`)) failures.push(`Il valore API del tipo sito deve restare stabile anche traducendo la label: ${value}`);
