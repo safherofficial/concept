@@ -66,6 +66,10 @@ module.exports = async function createCheckoutSession(req, res) {
   }
   if (!sameOrigin(req, siteUrl)) return send(res, 403, { error: "Origine della richiesta non valida." });
 
+  // A Vercel Preview can differ from SITE_URL; send the visitor back to the exact
+  // HTTPS origin that initiated this checkout, after passing the same-origin check.
+  const returnBaseUrl = req.headers.origin ? new URL(req.headers.origin).origin : siteUrl;
+
   let input = req.body;
   if (typeof input === "string") {
     try { input = JSON.parse(input); } catch { return send(res, 400, { error: "Richiesta non valida." }); }
@@ -116,8 +120,8 @@ module.exports = async function createCheckoutSession(req, res) {
     form.set("automatic_tax[enabled]", taxReady ? "true" : "false");
     form.set("line_items[0][quantity]", "1");
     form.set("line_items[0][price]", priceId);
-    form.set("success_url", `${siteUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`);
-    form.set("cancel_url", `${siteUrl}/#pricing`);
+    form.set("success_url", `${returnBaseUrl}/success.html?session_id={CHECKOUT_SESSION_ID}`);
+    form.set("cancel_url", `${returnBaseUrl}/#pricing`);
     form.set("allow_promotion_codes", "false");
     form.set("metadata[plan]", planId);
     form.set("metadata[terms_acknowledged]", "yes");
