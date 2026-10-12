@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  const APP_VERSION = "20261012-4";
   const config = window.CONCEPT_CONFIG || {};
   const plans = config.plans || {
     starter: { name: "Starter", price: 49 },
@@ -172,32 +173,6 @@
     if (payload.details.length > 1800) return tr("La descrizione è troppo lunga.");
     return "";
   }
-  function downloadProjectBrief(payload, reason) {
-    const plan = payload.plan === "custom" ? tr("Da definire") : `${plans[payload.plan]?.name || payload.plan} — ${money(plans[payload.plan]?.price || 0)}/${tr("mese")}`;
-    const content = [
-      tr("CONCEPT — RIEPILOGO RICHIESTA PROGETTO"),
-      "======================================",
-      `${tr("Nome:")} ${payload.name}`,
-      `${tr("E-mail:")} ${payload.email}`,
-      `${tr("Piano:")} ${plan}`,
-      `${tr("Tipologia:")} ${payload.siteType}`,
-      `${tr("Descrizione:")} ${payload.details || tr("Non specificata")}`,
-      `${tr("Data:")} ${new Date().toLocaleString(window.CONCEPT_I18N?.getLanguage() === "en" ? "en-GB" : "it-IT")}`,
-      "",
-      tr("ATTENZIONE: questo riepilogo è stato generato localmente. Non è stato inviato al venditore."),
-      `${tr("Motivo:")} ${tr(reason)}`,
-      tr("Prima di inviare questo documento, verifica l'indirizzo di contatto ufficiale del servizio.")
-    ].join("\n");
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = tr("concept-richiesta-progetto.txt");
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
-  }
   async function postJson(url, payload) {
     const response = await fetch(url, {
       method: "POST",
@@ -243,13 +218,23 @@
       }
       throw new Error(tr("La risposta del servizio non è valida."));
     } catch (error) {
-      const configMissing = error.status === 503;
-      const message = configMissing
-        ? `${tr(error.message)} ${tr("Nessun pagamento è stato avviato. Controlla la configurazione Preview in Vercel e riprova.")}`
-        : `${tr("Non siamo riusciti a completare l'operazione. Nessun pagamento è stato avviato.")} ${tr(error.message)}`;
+      const endpoint = requestedAction === "inquiry" ? config.inquiryEndpoint : config.checkoutEndpoint;
+      const noAction = requestedAction === "checkout"
+        ? tr("Nessun pagamento è stato avviato.")
+        : tr("Nessun dato è stato registrato.");
+      const messageText = String(error?.message || "");
+      const networkFailure = !Number.isInteger(error?.status) &&
+        /failed to fetch|networkerror|load failed|fetch failed/i.test(messageText);
+      let message;
+      if (networkFailure) {
+        message = `${tr("Il browser non riesce a raggiungere l'API del sito.")} ${String(endpoint || "endpoint non configurato")}. ${noAction} ${tr("Versione interfaccia:")} ${APP_VERSION}.`;
+      } else if (error?.status === 503) {
+        message = `${tr(messageText)} ${noAction} ${tr("Versione interfaccia:")} ${APP_VERSION}.`;
+      } else {
+        const status = Number.isInteger(error?.status) ? `HTTP ${error.status}. ` : "";
+        message = `${tr("Non siamo riusciti a completare l'operazione.")} ${status}${tr(messageText || "Errore sconosciuto.")} ${noAction} ${tr("Versione interfaccia:")} ${APP_VERSION}.`;
+      }
       showFormMessage(message, "error");
-      // Download a local brief only when genuinely offline, not when the server returns a fixable configuration error.
-      if (!navigator.onLine) downloadProjectBrief(payload, error.message);
     } finally {
       if (submit) submit.disabled = false;
       if (submitLabel) submitLabel.textContent = requestedAction === "inquiry" ? tr("Invia la richiesta") : tr("Continua al checkout");

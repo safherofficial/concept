@@ -4,7 +4,7 @@
   "private": true,
   "description": "Premium Italian website subscription service marketing site with Stripe Checkout API routes.",
   "scripts": {
-    "check": "node scripts/check-site.mjs && node --check i18n.js && node --check app.js && node --check success.js && node --check api/create-checkout-session.js && node --check api/contact.js && node --check api/checkout-session.js && node scripts/test-api.cjs"
+    "check": "node scripts/check-site.mjs && node --check i18n.js && node --check app.js && node --check success.js && node --check api/create-checkout-session.js && node --check api/contact.js && node --check api/checkout-session.js && node --check api/health.js && node scripts/test-api.cjs"
   },
   "engines": {
     "node": ">=20"
