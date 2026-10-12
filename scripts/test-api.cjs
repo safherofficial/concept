@@ -37,20 +37,20 @@ const priorFetch = global.fetch;
 
     process.env.SITE_URL = 'https://concept.example';
     process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
-    process.env.STRIPE_PRICE_BUSINESS = 'price_business_test';
+    process.env.STRIPE_PRICE_BUSINESS = 'price_businesstest';
     process.env.STRIPE_AUTOMATIC_TAX = 'true';
     process.env.LEGAL_TERMS_READY = 'true';
     process.env.TERMS_VERSION = 'test-v1';
 
     const validBusinessPrice = {
-      id: 'price_business_test', active: true, currency: 'eur', unit_amount: 11900,
+      id: 'price_businesstest', active: true, currency: 'eur', unit_amount: 11900,
       type: 'recurring', recurring: { interval: 'month', interval_count: 1 }, livemode: false,
       product: { id: 'prod_business_test', name: 'CONCEPT Business', active: true }
     };
     let stripePayload;
     let priceFetchCount = 0;
     global.fetch = async (url, options) => {
-      if (url === 'https://api.stripe.com/v1/prices/price_business_test?expand%5B%5D=product') {
+      if (url === 'https://api.stripe.com/v1/prices/price_businesstest?expand%5B%5D=product') {
         priceFetchCount++;
         assert.equal(options.method, 'GET');
         assert.equal(options.headers.Authorization, 'Bearer sk_test_placeholder');
@@ -67,7 +67,7 @@ const priorFetch = global.fetch;
     assert.match(result.body.url, /^https:\/\/checkout\.stripe\.com\//);
     assert.equal(priceFetchCount, 1, 'Il prezzo del catalogo deve essere verificato prima di creare la sessione.');
     assert.equal(stripePayload.get('mode'), 'subscription');
-    assert.equal(stripePayload.get('line_items[0][price]'), 'price_business_test', 'Il checkout deve usare il Price ID del catalogo.');
+    assert.equal(stripePayload.get('line_items[0][price]'), 'price_businesstest', 'Il checkout deve usare il Price ID del catalogo.');
     assert.equal(stripePayload.get('line_items[0][quantity]'), '1');
     assert.equal(stripePayload.get('line_items[0][price_data][unit_amount]'), null, 'Il checkout non deve più creare prezzi inline.');
     assert.equal(stripePayload.get('automatic_tax[enabled]'), 'true');
@@ -78,10 +78,10 @@ const priorFetch = global.fetch;
     result = await call(checkout, { method: 'POST', headers: { origin: 'https://concept.example' }, body: valid });
     assert.equal(result.status, 503);
     assert.equal(fetched, false, 'Un piano senza Price ID non deve arrivare a Stripe.');
-    process.env.STRIPE_PRICE_BUSINESS = 'price_business_test';
+    process.env.STRIPE_PRICE_BUSINESS = 'price_businesstest';
 
     global.fetch = async (url) => {
-      assert.equal(url, 'https://api.stripe.com/v1/prices/price_business_test?expand%5B%5D=product');
+      assert.equal(url, 'https://api.stripe.com/v1/prices/price_businesstest?expand%5B%5D=product');
       return { ok: true, status: 200, json: async () => ({ ...validBusinessPrice, unit_amount: 4900 }) };
     };
     result = await call(checkout, { method: 'POST', headers: { origin: 'https://concept.example' }, body: valid });
