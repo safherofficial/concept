@@ -243,12 +243,13 @@
       }
       throw new Error(tr("La risposta del servizio non è valida."));
     } catch (error) {
-      const configMissing = error.status === 503 || /non è ancora configurato|non configurato|momentaneamente non disponibile/i.test(error.message);
+      const configMissing = error.status === 503;
       const message = configMissing
-        ? tr("Il sistema di invio/pagamento non è ancora collegato. Per non perdere i dettagli, puoi scaricare il brief: nessun dato è stato inviato e nessun pagamento è partito.")
+        ? `${tr(error.message)} ${tr("Nessun pagamento è stato avviato. Controlla la configurazione Preview in Vercel e riprova.")}`
         : `${tr("Non siamo riusciti a completare l'operazione. Nessun pagamento è stato avviato.")} ${tr(error.message)}`;
       showFormMessage(message, "error");
-      if (configMissing || !navigator.onLine) downloadProjectBrief(payload, error.message);
+      // Download a local brief only when genuinely offline, not when the server returns a fixable configuration error.
+      if (!navigator.onLine) downloadProjectBrief(payload, error.message);
     } finally {
       if (submit) submit.disabled = false;
       if (submitLabel) submitLabel.textContent = requestedAction === "inquiry" ? tr("Invia la richiesta") : tr("Continua al checkout");

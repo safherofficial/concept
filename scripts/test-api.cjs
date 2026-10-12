@@ -34,6 +34,7 @@ const priorFetch = global.fetch;
 
     let result = await call(checkout, { method: 'POST', headers: { origin: 'https://concept.example' }, body: valid });
     assert.equal(result.status, 503, 'Checkout deve rimanere disattivato se non è configurato.');
+    assert.match(result.body.error, /SITE_URL/, 'L’errore deve indicare quale variabile di configurazione manca.');
 
     process.env.SITE_URL = 'https://concept.example';
     process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
@@ -43,6 +44,13 @@ const priorFetch = global.fetch;
       type: 'recurring', recurring: { interval: 'month', interval_count: 1 }, livemode: false,
       product: { id: 'prod_business_test', name: 'CONCEPT Business', active: true }
     };
+
+    let networkCalledBeforeSandboxEnabled = false;
+    global.fetch = async () => { networkCalledBeforeSandboxEnabled = true; throw new Error('No network call expected'); };
+    result = await call(checkout, { method: 'POST', headers: { origin: 'https://concept.example' }, body: valid });
+    assert.equal(result.status, 503, 'Sandbox deve restare disattivato senza opt-in esplicito.');
+    assert.match(result.body.error, /STRIPE_TEST_CHECKOUT_ENABLED/, 'L’errore deve indicare la variabile Sandbox mancante.');
+    assert.equal(networkCalledBeforeSandboxEnabled, false);
 
     // Sandbox-only mode must allow end-to-end checkout without pretending legal copy is ready.
     process.env.STRIPE_TEST_CHECKOUT_ENABLED = 'true';
