@@ -101,6 +101,12 @@ const priorFetch = global.fetch;
       body: valid
     });
     assert.equal(result.status, 200, 'Same-origin requests on Vercel Preview must pass even when SITE_URL names another deployment.');
+    assert.equal(
+      stripePayload.get('success_url'),
+      'https://concept-preview.vercel.app/success.html?session_id={CHECKOUT_SESSION_ID}',
+      'Stripe must return the customer to the same Preview host that started checkout.'
+    );
+    assert.equal(stripePayload.get('cancel_url'), 'https://concept-preview.vercel.app/#pricing');
 
     let fetched = false;
     delete process.env.STRIPE_PRICE_BUSINESS;
@@ -163,11 +169,30 @@ const priorFetch = global.fetch;
         metadata: { plan: 'business' }, customer_details: { email: valid.email }, subscription: { status: 'active' }
       }) };
     };
-    result = await call(checkoutSession, { method: 'GET', headers: {}, query: { session_id: 'cs_test_123abc' } });
+    result = await call(checkoutSession, { method: 'GET', headers: { host: 'concept.example' }, query: { session_id: 'cs_test_123abc' } });
     assert.equal(result.status, 200);
     assert.equal(result.body.paid, true);
     assert.equal(result.body.plan, 'Business');
-    result = await call(checkoutSession, { method: 'GET', headers: {}, query: { session_id: 'fake' } });
+
+    global.fetch = async (url, options) => {
+      assert.match(url, /^https:\/\/api\.stripe\.com\/v1\/checkout\/sessions\/cs_test_preview123/);
+      return { ok: true, status: 200, json: async () => ({
+        id: 'cs_test_preview123', status: 'complete', payment_status: 'paid',
+        success_url: 'https://concept-preview.vercel.app/success.html?session_id={CHECKOUT_SESSION_ID}',
+        metadata: { plan: 'starter' }, customer_details: { email: valid.email },
+        subscription: { status: 'active' }
+      }) };
+    };
+    result = await call(checkoutSession, {
+      method: 'GET',
+      headers: { host: 'concept-preview.vercel.app' },
+      query: { session_id: 'cs_test_preview123' }
+    });
+    assert.equal(result.status, 200, 'Verification must accept a successful order on the same Preview host even if SITE_URL differs.');
+    assert.equal(result.body.paid, true);
+    assert.equal(result.body.plan, 'Starter');
+
+    result = await call(checkoutSession, { method: 'GET', headers: { host: 'concept.example' }, query: { session_id: 'fake' } });
     assert.equal(result.status, 400);
 
     console.log('API TESTS: PASS — catalog Price ID validation, sandbox-only gate, test/live mode matching, checkout creation, origin checks, inquiry delivery/validation and server-side payment verification.');
