@@ -29,7 +29,7 @@ const priorFetch = global.fetch;
   try {
     for (const key of [
       'SITE_URL', 'STRIPE_SECRET_KEY', 'STRIPE_PRICE_STARTER', 'STRIPE_PRICE_BUSINESS',
-      'STRIPE_PRICE_PRO', 'STRIPE_AUTOMATIC_TAX', 'LEGAL_TERMS_READY', 'TERMS_VERSION'
+      'STRIPE_PRICE_PRO', 'STRIPE_AUTOMATIC_TAX', 'STRIPE_TEST_CHECKOUT_ENABLED', 'LEGAL_TERMS_READY', 'TERMS_VERSION'
     ]) delete process.env[key];
 
     let result = await call(checkout, { method: 'POST', headers: { origin: 'https://concept.example' }, body: valid });
@@ -38,15 +38,37 @@ const priorFetch = global.fetch;
     process.env.SITE_URL = 'https://concept.example';
     process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
     process.env.STRIPE_PRICE_BUSINESS = 'price_businesstest';
-    process.env.STRIPE_AUTOMATIC_TAX = 'true';
-    process.env.LEGAL_TERMS_READY = 'true';
-    process.env.TERMS_VERSION = 'test-v1';
-
     const validBusinessPrice = {
       id: 'price_businesstest', active: true, currency: 'eur', unit_amount: 11900,
       type: 'recurring', recurring: { interval: 'month', interval_count: 1 }, livemode: false,
       product: { id: 'prod_business_test', name: 'CONCEPT Business', active: true }
     };
+
+    // Sandbox-only mode must allow end-to-end checkout without pretending legal copy is ready.
+    process.env.STRIPE_TEST_CHECKOUT_ENABLED = 'true';
+    let sandboxPayload;
+    global.fetch = async (url, options) => {
+      if (url === 'https://api.stripe.com/v1/prices/price_businesstest?expand%5B%5D=product') {
+        return { ok: true, status: 200, json: async () => ({ ...validBusinessPrice }) };
+      }
+      assert.equal(url, 'https://api.stripe.com/v1/checkout/sessions');
+      sandboxPayload = new URLSearchParams(options.body);
+      return { ok: true, status: 200, json: async () => ({ id: 'cs_test_sandbox', url: 'https://checkout.stripe.com/c/pay/cs_test_sandbox' }) };
+    };
+    result = await call(checkout, { method: 'POST', headers: { origin: 'https://concept.example' }, body: valid });
+    assert.equal(result.status, 200, 'Il flag esplicito deve consentire il checkout Sandbox con una chiave test.');
+    assert.equal(sandboxPayload.get('automatic_tax[enabled]'), 'false', 'Sandbox può essere testato senza attivare prima le imposte automatiche.');
+    assert.equal(sandboxPayload.get('metadata[terms_version]'), 'sandbox-test');
+
+    process.env.STRIPE_SECRET_KEY = 'sk_live_placeholder';
+    global.fetch = async () => { throw new Error('La modalità Sandbox non deve usare Stripe live'); };
+    result = await call(checkout, { method: 'POST', headers: { origin: 'https://concept.example' }, body: valid });
+    assert.equal(result.status, 503, 'Il flag Sandbox non deve bypassare i requisiti con una chiave live.');
+    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+    delete process.env.STRIPE_TEST_CHECKOUT_ENABLED;
+    process.env.STRIPE_AUTOMATIC_TAX = 'true';
+    process.env.LEGAL_TERMS_READY = 'true';
+    process.env.TERMS_VERSION = 'test-v1';
     let stripePayload;
     let priceFetchCount = 0;
     global.fetch = async (url, options) => {
@@ -134,7 +156,7 @@ const priorFetch = global.fetch;
     result = await call(checkoutSession, { method: 'GET', headers: {}, query: { session_id: 'fake' } });
     assert.equal(result.status, 400);
 
-    console.log('API TESTS: PASS — catalog Price ID validation, test/live mode matching, checkout creation, origin checks, inquiry delivery/validation and server-side payment verification.');
+    console.log('API TESTS: PASS — catalog Price ID validation, sandbox-only gate, test/live mode matching, checkout creation, origin checks, inquiry delivery/validation and server-side payment verification.');
   } catch (error) {
     console.error('API TESTS: FAIL');
     console.error(error);
