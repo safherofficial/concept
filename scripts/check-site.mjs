@@ -6,7 +6,7 @@ const root = process.cwd();
 const required = [
   'index.html', 'styles.css', 'app.js', 'i18n.js', 'site-config.js', 'success.html', 'success.js',
   'privacy.html', 'terms.html', '404.html', 'site.webmanifest', 'robots.txt', 'vercel.json',
-  'api/create-checkout-session.js', 'api/contact.js', 'api/checkout-session.js', 'assets/favicon.svg', '.env.example', '.github/workflows/ci.yml'
+  'api/create-checkout-session.js', 'api/contact.js', 'api/checkout-session.js', 'api/health.js', 'assets/favicon.svg', '.env.example', '.github/workflows/ci.yml'
 ];
 const failures = [];
 for (const relative of required) {
@@ -45,7 +45,9 @@ for (const asset of ['/styles.css', '/app.js', '/site-config.js', '/assets/favic
   const versionedReference = html.includes(`href="${asset}?v=`) || html.includes(`src="${asset}?v=`);
   if (!exactReference && !versionedReference) failures.push(`Riferimento asset atteso non trovato: ${asset}`);
 }
-if (!html.includes('/app.js?v=20261012-3') || !html.includes('/i18n.js?v=20261012-3') || !html.includes('/site-config.js?v=20261012-3')) failures.push('Gli script principali devono usare la versione cache-busted.');
+if (!html.includes('/app.js?v=20261012-4') || !html.includes('/i18n.js?v=20261012-4') || !html.includes('/site-config.js?v=20261012-4')) failures.push('Gli script principali devono usare la versione cache-busted corrente.');
+if (app.includes('downloadProjectBrief') || app.includes('navigator.onLine')) failures.push('Il modulo non deve scaricare un brief di fallback né dipendere dallo stato offline del browser.');
+if (!app.includes('20261012-4')) failures.push('Versione interfaccia checkout non aggiornata.');
 if (!css.includes('@media (max-width:520px)')) failures.push('Stili mobile stretti mancanti.');
 if (!css.includes('prefers-reduced-motion')) failures.push('Manca il supporto a prefers-reduced-motion.');
 if (!html.includes('aria-live="polite"')) failures.push('Feedback accessibile del form mancante.');
