@@ -47,6 +47,20 @@ if (!css.includes('@media (max-width:520px)')) failures.push('Stili mobile stret
 if (!css.includes('prefers-reduced-motion')) failures.push('Manca il supporto a prefers-reduced-motion.');
 if (!html.includes('aria-live="polite"')) failures.push('Feedback accessibile del form mancante.');
 if (!html.includes('calcolatore')) failures.push('Contenuto relativo al calcolatore non trovato.');
+
+const sectionTags = [...html.matchAll(/<section\b[^>]*>/g)].map(match => match[0]);
+const sectionOrder = sectionTags.map(tag => tag.match(/\bid=["']([^"']+)["']/)?.[1]).filter(Boolean);
+const requiredDecisionOrder = ['pricing', 'risparmio', 'servizi', 'come-funziona', 'faq'];
+if (sectionTags.length !== 7) failures.push(`Il percorso UX deve mantenere 7 sezioni principali, trovate: ${sectionTags.length}.`);
+if (JSON.stringify(sectionOrder) !== JSON.stringify(requiredDecisionOrder)) failures.push(`Ordine delle sezioni non conforme al percorso decisionale: ${sectionOrder.join(' → ')}.`);
+for (const obsolete of ['id="perche-concept"', 'id="standard"', 'class="fit-section"', 'class="final-cta-section"']) {
+  if (html.includes(obsolete)) failures.push(`Sezione ripetitiva da rimuovere ancora presente: ${obsolete}.`);
+}
+if (!html.includes('class="faq-choose-card"') || !css.includes('.faq-choose-card{')) failures.push('CTA di supporto alla scelta del piano mancante.');
+if (!html.includes('Senza maxi anticipo.') || !html.includes('49 €/mese')) failures.push('La promessa principale e il prezzo di partenza devono essere visibili subito.');
+if (!i18n.includes('Continua al checkout') || !app.includes('tr("Continua al checkout")')) failures.push('Il pulsante del modulo deve descrivere il vero passo successivo: checkout Stripe.');
+if (!css.includes('.mobile-nav{position:absolute;top:100%') || !css.includes('.mobile-nav[hidden]{display:none!important}')) failures.push('Il menu mobile deve aprirsi come dropdown e restare nascosto alla chiusura.');
+
 if (!css.includes('.mobile-nav[hidden]{display:none!important}')) failures.push('La navigazione mobile deve rispettare l\'attributo hidden per non coprire la homepage.');
 if (!i18n.includes('data-set-language') || !i18n.includes('concept-language') || !i18n.includes('document.documentElement.lang = next')) failures.push('Selettore IT/EN o persistenza della lingua mancanti.');
 for (const page of ['privacy.html', 'terms.html', 'success.html', '404.html']) {

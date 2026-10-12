@@ -102,7 +102,7 @@
       formMessage.textContent = "";
       formMessage.classList.remove("error");
     }
-    if (submitLabel) submitLabel.textContent = action === "inquiry" ? tr("Invia la richiesta") : tr("Continua al riepilogo");
+    if (submitLabel) submitLabel.textContent = action === "inquiry" ? tr("Invia la richiesta") : tr("Continua al checkout");
     const termsRow = byId("checkout-terms-row");
     if (termsRow) termsRow.hidden = action !== "checkout";
     const termsInput = termsRow?.querySelector("input");
@@ -251,7 +251,7 @@
       if (configMissing || !navigator.onLine) downloadProjectBrief(payload, error.message);
     } finally {
       if (submit) submit.disabled = false;
-      if (submitLabel) submitLabel.textContent = requestedAction === "inquiry" ? tr("Invia la richiesta") : tr("Continua al riepilogo");
+      if (submitLabel) submitLabel.textContent = requestedAction === "inquiry" ? tr("Invia la richiesta") : tr("Continua al checkout");
     }
   });
 
