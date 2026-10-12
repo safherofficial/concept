@@ -94,6 +94,14 @@ const priorFetch = global.fetch;
     assert.equal(stripePayload.get('line_items[0][price_data][unit_amount]'), null, 'Il checkout non deve più creare prezzi inline.');
     assert.equal(stripePayload.get('automatic_tax[enabled]'), 'true');
 
+    // Vercel Preview hostname may differ from SITE_URL; permit it only when it matches the request Host.
+    result = await call(checkout, {
+      method: 'POST',
+      headers: { origin: 'https://concept-preview.vercel.app', host: 'concept-preview.vercel.app' },
+      body: valid
+    });
+    assert.equal(result.status, 200, 'Same-origin requests on Vercel Preview must pass even when SITE_URL names another deployment.');
+
     let fetched = false;
     delete process.env.STRIPE_PRICE_BUSINESS;
     global.fetch = async () => { fetched = true; throw new Error('Non deve chiamare Stripe senza un Price ID'); };
@@ -135,6 +143,12 @@ const priorFetch = global.fetch;
     result = await call(contact, { method: 'POST', headers: { origin: 'https://concept.example' }, body: valid });
     assert.equal(result.status, 200);
     assert.equal(result.body.success, true);
+    result = await call(contact, {
+      method: 'POST',
+      headers: { origin: 'https://concept-preview.vercel.app', host: 'concept-preview.vercel.app' },
+      body: valid
+    });
+    assert.equal(result.status, 200, 'Same-origin Vercel Preview contact requests must pass when they match the request Host.');
     result = await call(contact, { method: 'POST', headers: { origin: 'https://concept.example' }, body: { ...valid, email: 'not-an-email' } });
     assert.equal(result.status, 400);
     result = await call(contact, { method: 'POST', headers: { origin: 'https://concept.example' }, body: { ...valid, website: 'https://spam.example' } });

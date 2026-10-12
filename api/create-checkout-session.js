@@ -16,9 +16,21 @@ function clean(value, max = 500) {
   return String(value || "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, max);
 }
 function sameOrigin(req, siteUrl) {
-  const origin = req.headers.origin;
-  if (!origin) return true;
-  try { return new URL(origin).origin === new URL(siteUrl).origin; } catch { return false; }
+  const rawOrigin = req.headers.origin;
+  if (!rawOrigin) return true;
+
+  try {
+    const origin = new URL(rawOrigin);
+    if (origin.protocol !== "https:" || origin.username || origin.password) return false;
+    if (origin.origin === new URL(siteUrl).origin) return true;
+
+    // Vercel Preview deployments can have a hostname different from SITE_URL.
+    // Still accept the browser's own HTTPS origin only when it matches this request's Host.
+    const requestHost = String(req.headers.host || "").trim().toLowerCase();
+    return Boolean(requestHost && origin.host.toLowerCase() === requestHost);
+  } catch {
+    return false;
+  }
 }
 function isExpectedPrice(price, plan, expectedLiveMode) {
   return Boolean(
